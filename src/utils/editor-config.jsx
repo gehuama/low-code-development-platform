@@ -1,7 +1,7 @@
 // 列表区可以显示所有的物料
 // key对应的组件映射关系
 
-import { ElButton, ElInput, ElRadio } from "element-plus";
+import { ElButton, ElCheckbox, ElInput, ElRadio } from "element-plus";
 
 function createEditorConfig() {
   const componentList = [];
@@ -44,4 +44,10 @@ registerConfig.register({
   preview: () => <ElRadio>预览单选</ElRadio>,
   render: () => <ElRadio>渲染单选</ElRadio>,
   key: "radio",
+});
+registerConfig.register({
+  label: "多选",
+  preview: () => <ElCheckbox>预览多选</ElCheckbox>,
+  render: () => <div>渲染多选</div>,
+  key: "checkbox",
 });

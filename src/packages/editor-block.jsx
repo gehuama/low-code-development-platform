@@ -32,6 +32,8 @@ export default defineComponent({
           left: blockInfo.left,
           top: blockInfo.top,
           alignCenter: false,
+          width: offsetWidth, // 组件的宽度
+          height: offsetHeight, // 组件的高度
         }); // 渲染后的结果才能去居中
       }
     });

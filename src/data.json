@@ -6,7 +6,8 @@
     "blocks":[
         {"top":100,"left":100, "zIndex":1,"key":"text"},
         {"top":200,"left":150, "zIndex":1,"key":"button"},
-        {"top":300,"left":200, "zIndex":1,"key":"input"}
+        {"top":300,"left":200, "zIndex":1,"key":"input"},
+        {"top":400,"left":200, "zIndex":1,"key":"checkbox"}
     ]
     
 }

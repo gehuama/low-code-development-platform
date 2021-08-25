@@ -9,6 +9,8 @@ export default function blockFocus(
   data: WritableComputedRef<IEditorData>,
   callback: (arg0: MouseEvent) => void
 ): IBlockFocus {
+  let selectIndex = -1;
+  const lastSelectBlock = computed(() => data.value.blocks[selectIndex]);
   const focusData = computed(() => {
     const focus: Array<IBlock> = [];
     const unFocused: Array<IBlock> = [];
@@ -23,25 +25,29 @@ export default function blockFocus(
   /** 点击容器让选中的失去焦点 */
   const containerMouseDown = () => {
     clearBlockFocus();
+    selectIndex = -1;
   };
   /** 点击组件获取焦点焦点 */
-  const blockMouseDown = (e: MouseEvent, block: IBlock) => {
+  const blockMouseDown = (e: MouseEvent, block: IBlock, index: number) => {
     e.preventDefault();
     e.stopPropagation();
     // block上我们规划一个属性 focus 获取焦点后就将focus变为true
     if (e.shiftKey) {
-      // shift+点击选中多个组件
-      block.focus = !block.focus;
+      if (focusData.value.focus.length <= 1) {
+        block.focus = true; // 当前只有一个节点被选中时，按住shift健也不会切换focus状态
+      } else {
+        // shift+点击选中多个组件
+        block.focus = !block.focus;
+      }
     } else {
       if (!block.focus) {
         // 先要清空其他组件focus属性
         clearBlockFocus();
         // 再给当前组件负责
         block.focus = true;
-      } else {
-        block.focus = false;
-      }
+      } // 当被选中时，再次点击仍旧被选中，因此不需要else 改变状态
     }
+    selectIndex = index;
     callback(e);
   };
 
@@ -49,5 +55,6 @@ export default function blockFocus(
     blockMouseDown,
     containerMouseDown,
     focusData,
+    lastSelectBlock,
   } as unknown as IBlockFocus;
 }

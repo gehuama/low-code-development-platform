@@ -17,6 +17,10 @@ export interface IBlock {
   alignCenter?: boolean;
   /** 组件获取焦点 */
   focus?: boolean;
+  /** 组件的宽度*/
+  width?: number;
+  /** 组件的高度*/
+  height?: number;
 }
 /** 产生内容区域 相关属性 */
 export interface IContainer {

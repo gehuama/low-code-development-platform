@@ -32,14 +32,16 @@ export default defineComponent({
     // 1. 实现菜单的拖拽功能
     const { dragStart, dragEnd } = menuDragger(containerRef, data); // 实现菜单的拖拽
     // 2. 实现获取焦点 选中后可能直接就进行拖拽了
-    const { blockMouseDown, containerMouseDown, focusData } = blockFocus(
-      data,
-      (e) => {
+    const { blockMouseDown, containerMouseDown, focusData, lastSelectBlock } =
+      blockFocus(data, (e) => {
         mouseDown(e);
-      }
-    );
+      });
     // 3. 实现组件拖拽
-    const { mouseDown } = blockDragger(focusData);
+    const { mouseDown, markLine } = blockDragger(
+      focusData,
+      lastSelectBlock,
+      data
+    );
 
     // 3. 实现拖拽多个元素功能
 
@@ -48,6 +50,8 @@ export default defineComponent({
       block.left = newBlock.left;
       block.top = newBlock.top;
       block.alignCenter = newBlock.alignCenter;
+      block.width = newBlock.width;
+      block.height = newBlock.height;
     };
     return () => (
       <div class="editor">
@@ -80,14 +84,20 @@ export default defineComponent({
               ref={containerRef}
               onMousedown={(e) => containerMouseDown(e)}
             >
-              {data.value.blocks.map((block) => (
+              {data.value.blocks.map((block, index) => (
                 <EditorBlock
                   class={block.focus ? "editor-block-focus" : ""}
                   block={block}
-                  onMousedown={(e) => blockMouseDown(e, block)}
+                  onMousedown={(e) => blockMouseDown(e, block, index)}
                   onBlockUpdate={(newBlock) => blockUpdate(newBlock, block)}
                 ></EditorBlock>
               ))}
+              {markLine.x !== null && (
+                <div class="line-x" style={{ left: markLine.x + "px" }}></div>
+              )}
+              {markLine.y !== null && (
+                <div class="line-y" style={{ top: markLine.y + "px" }}></div>
+              )}
             </div>
           </div>
         </div>

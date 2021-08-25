@@ -1,4 +1,4 @@
-import { IBlockDragger } from "./block-dragger";
+import { IBlockDragger, IMarkLine } from "./block-dragger";
 import { IBlockFocus, IFocusData } from "./block-focus";
 import {
   IComponent,
@@ -17,4 +17,5 @@ export {
   IBlockFocus,
   IBlockDragger,
   IFocusData,
+  IMarkLine,
 };
