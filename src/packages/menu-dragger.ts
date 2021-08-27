@@ -6,6 +6,7 @@ import {
 } from "@/types/packages";
 import { WritableComputedRef } from "vue";
 import { Ref } from "vue";
+import { events } from "./event";
 
 /**
  * 菜单拖拽
@@ -78,6 +79,7 @@ export default function menuDragger(
     );
     currentComponent = component;
     console.log("初始化", currentComponent);
+    events.emit("start"); // 发布start
   };
   /** 拖拽结束处理 */
   const dragEnd = (): void => {
@@ -97,6 +99,7 @@ export default function menuDragger(
       "drop",
       drop as unknown as EventListener
     );
+    events.emit("end"); // 发布end
   };
 
   return { dragStart, dragEnd } as unknown as IMenuDragger;

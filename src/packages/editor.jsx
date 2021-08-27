@@ -5,6 +5,7 @@ import deepcopy from "deepcopy";
 import menuDragger from "./menu-dragger";
 import blockFocus from "./block-focus";
 import blockDragger from "./block-dragger";
+import command from "./command";
 export default defineComponent({
   props: {
     modelValue: { type: Object },
@@ -53,6 +54,24 @@ export default defineComponent({
       block.width = newBlock.width;
       block.height = newBlock.height;
     };
+    const state = command(data); // []
+    const button = [
+      {
+        label: "撤销",
+        icon: "el-icon-refresh-left",
+        handler: () => {
+          state.commands.undo();
+        },
+      },
+      {
+        label: "重做",
+        icon: "el-icon-refresh-right",
+        handler: () => {
+          state.commands.redo();
+        },
+      },
+    ];
+
     return () => (
       <div class="editor">
         {/* 左侧物料区 */}
@@ -71,7 +90,16 @@ export default defineComponent({
           ))}
         </div>
         {/* 菜单栏 */}
-        <div class="editor-top">菜单栏</div>
+        <div class="editor-top">
+          {button.map((btn, index) => {
+            return (
+              <div class="editor-top-button" onClick={btn.handler}>
+                <i class={btn.icon}></i>
+                <span>{btn.label}</span>
+              </div>
+            );
+          })}
+        </div>
         {/* 属性控制栏 */}
         <div class="editor-right">属性控制栏</div>
         <div class="editor-container">

@@ -6,6 +6,7 @@ import {
   IMarkLine,
 } from "@/types/packages";
 import { reactive, WritableComputedRef } from "vue";
+import { events } from "./event";
 
 interface ILines {
   x: Array<ILineX>;
@@ -30,6 +31,7 @@ interface IDragState {
   startTop?: number;
   startPos?: Array<IPosition>;
   lines?: ILines;
+  dragging: boolean;
 }
 /**
  * 实现组件拖拽
@@ -46,6 +48,7 @@ export default function blockDragger(
   let dragState: IDragState = {
     startX: 0,
     startY: 0,
+    dragging: false, // 默认不是正在拖拽
   };
   // 标记线
   const markLine: IMarkLine = reactive({
@@ -58,6 +61,7 @@ export default function blockDragger(
     dragState = {
       startX: e.clientX,
       startY: e.clientY, // 记录每一个选中的位置
+      dragging: false,
       startLeft: lastSelectBlock.value.left, // b点拖拽前的位置 left
       startTop: lastSelectBlock.value.top, // b点拖拽前端的位置 top
       startPos: focusData.value.focus.map(({ top, left }) => ({
@@ -125,7 +129,11 @@ export default function blockDragger(
   const mousemove = (e: MouseEvent) => {
     // 获取移动的位置
     let { clientX: moveX, clientY: moveY } = e;
-
+    if (!dragState.dragging) {
+      // 如果不是正在拖拽，更新拖拽状态
+      dragState.dragging = true;
+      events.emit("start"); // 触发事件 记录拖拽之前组件的位置
+    }
     // 计算当前元素最新的left和top 去线里面找，找到显示
     // 鼠标移动后-鼠标移动前 + left 即可
     const left = moveX - dragState.startX + (dragState.startLeft || 0);
@@ -175,6 +183,11 @@ export default function blockDragger(
 
     markLine.x = null; // markLine 是一个响应式数据 x, y更新了会导致视图更新
     markLine.y = null;
+    if (dragState.dragging) {
+      // 如果只是点击就不会触发
+      // dragState.dragging = false;
+      events.emit("end"); // 触发事件 记录拖拽之前组件的位置
+    }
   };
 
   return {

@@ -4,7 +4,6 @@
 	&-left,&-right{
 		position: absolute;
 		width: 270px;
-		background: red;
 		top:0;
 		bottom: 0;
 	}
@@ -51,7 +50,24 @@
 		right: 280px;
 		left: 280px;
 		height: 80px;
-		background: blue;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		&-button{
+			width: 60px;
+			height: 60px;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			background:rgba(0, 0,0, 0.3);
+			user-select: none;
+			cursor: pointer;
+			color: #fff;
+			&+&{
+				margin-left: 3px;
+			}
+		}
 	}
 	&-container{
 		padding: 80px 270px;
