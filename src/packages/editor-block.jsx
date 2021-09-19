@@ -17,7 +17,7 @@ export default defineComponent({
     const blockStyle = computed(() => ({
       top: `${props.block.top}px`,
       left: `${props.block.left}px`,
-      zIndex: `${props.block.zIndex}px`,
+      "z-index": `${props.block.zIndex}`,
     }));
     const config = inject("config");
     const blockRef = ref(null);

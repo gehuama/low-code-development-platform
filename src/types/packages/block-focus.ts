@@ -10,4 +10,5 @@ export interface IBlockFocus {
   containerMouseDown: void;
   focusData: WritableComputedRef<IFocusData>;
   lastSelectBlock: WritableComputedRef<IBlock>;
+  clearBlockFocus: void;
 }

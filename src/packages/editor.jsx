@@ -16,6 +16,9 @@ export default defineComponent({
   },
   emits: ["update:modelValue"], // 要出发的事件
   setup(props, ctx) {
+    // 预览的时候 内容不能再操作了，可以点击或者输入内容 方便看效果
+    const previewRef = ref(false);
+
     const data = computed({
       get() {
         return props.modelValue;
@@ -34,10 +37,15 @@ export default defineComponent({
     // 1. 实现菜单的拖拽功能
     const { dragStart, dragEnd } = menuDragger(containerRef, data); // 实现菜单的拖拽
     // 2. 实现获取焦点 选中后可能直接就进行拖拽了
-    const { blockMouseDown, containerMouseDown, focusData, lastSelectBlock } =
-      blockFocus(data, (e) => {
-        mouseDown(e);
-      });
+    const {
+      blockMouseDown,
+      containerMouseDown,
+      focusData,
+      lastSelectBlock,
+      clearBlockFocus,
+    } = blockFocus(data, previewRef, (e) => {
+      mouseDown(e);
+    });
     // 3. 实现组件拖拽
     const { mouseDown, markLine } = blockDragger(
       focusData,
@@ -55,7 +63,7 @@ export default defineComponent({
       block.width = newBlock.width;
       block.height = newBlock.height;
     };
-    const state = command(data); // []
+    const state = command(data, focusData); // []
     const button = [
       {
         label: "撤销",
@@ -99,6 +107,35 @@ export default defineComponent({
           });
         },
       },
+      {
+        label: "置顶",
+        icon: "el-icon-top",
+        handler: () => {
+          state.commands.placeTop();
+        },
+      },
+      {
+        label: "置底",
+        icon: "el-icon-bottom",
+        handler: () => {
+          state.commands.placeBottom();
+        },
+      },
+      {
+        label: "删除",
+        icon: "el-icon-delete",
+        handler: () => {
+          state.commands.delete();
+        },
+      },
+      {
+        label: () => (previewRef.value ? "编辑" : "预览"),
+        icon: () => (previewRef.value ? "el-icon-edit" : "el-icon-view"),
+        handler: () => {
+          previewRef.value = !previewRef.value;
+          clearBlockFocus();
+        },
+      },
     ];
 
     return () => (
@@ -121,10 +158,13 @@ export default defineComponent({
         {/* 菜单栏 */}
         <div class="editor-top">
           {button.map((btn, index) => {
+            const icon = typeof btn.icon == "function" ? btn.icon() : btn.icon;
+            const label =
+              typeof btn.label == "function" ? btn.label() : btn.label;
             return (
               <div class="editor-top-button" onClick={btn.handler}>
-                <i class={btn.icon}></i>
-                <span>{btn.label}</span>
+                <i class={icon}></i>
+                <span>{label}</span>
               </div>
             );
           })}
@@ -144,6 +184,7 @@ export default defineComponent({
               {data.value.blocks.map((block, index) => (
                 <EditorBlock
                   class={block.focus ? "editor-block-focus" : ""}
+                  class={previewRef.value ? "editor-block-preview" : ""}
                   block={block}
                   onMousedown={(e) => blockMouseDown(e, block, index)}
                   onBlockUpdate={(newBlock) => blockUpdate(newBlock, block)}

@@ -1,4 +1,4 @@
-import { IBlock, IEditorData } from "@/types/packages";
+import { IBlock, IEditorData, IFocusData } from "@/types/packages";
 import deepcopy from "deepcopy";
 import { onUnmounted, WritableComputedRef } from "vue";
 import { events } from "./event";
@@ -34,7 +34,8 @@ interface ICommandState {
 }
 
 export default function command(
-  data: WritableComputedRef<IEditorData>
+  data: WritableComputedRef<IEditorData>,
+  focusData: WritableComputedRef<IFocusData>
 ): ICommandState {
   // 前进后退需要指针
   const state: ICommandState = {
@@ -162,14 +163,90 @@ export default function command(
   //     };
   //   },
   // });
+  registry({
+    // 置顶操作
+    name: "placeTop",
+    pushQueue: true,
+    keyboard: "",
+    execute() {
+      const before = deepcopy(data.value.blocks);
+      const after = (() => {
+        // 置顶就是在所有的block中找到最大的
+        const { focus, unFocused } = focusData.value;
+        const maxZIndex = unFocused.reduce((prev, block) => {
+          return Math.max(prev, block.zIndex);
+        }, -Infinity);
+        focus.forEach((block) => (block.zIndex = maxZIndex + 1)); // 让当前选中的组件，比未选中的组件最大的zIndex+1 即可
+        return data.value.blocks;
+      })(); //之后的状态
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: after };
+        },
+        undo() {
+          // 如果当前 blocks 前后一致 则不会更新
+          data.value = { ...data.value, blocks: before };
+        },
+      };
+    },
+  });
+  registry({
+    // 置底操作
+    name: "placeBottom",
+    pushQueue: true,
+    keyboard: "",
+    execute() {
+      const before = deepcopy(data.value.blocks);
+      const after = (() => {
+        // 置顶就是在所有的block中找到最大的
+        const { focus, unFocused } = focusData.value;
+        let minZIndex =
+          unFocused.reduce((prev, block) => {
+            return Math.min(prev, block.zIndex);
+          }, Infinity) - 1;
+        // 不能直接 -1 因为 zIndex 不能出现负值 负值就看不到组件了
+        if (minZIndex < 0) {
+          // 这里如果是负值，则让没选中的组件向上，选中的组件自己变成0
+          const dur = Math.abs(minZIndex);
+          minZIndex = 0;
+          unFocused.forEach((block) => (block.zIndex += dur));
+        }
+        focus.forEach((block) => (block.zIndex = minZIndex)); // 让当前选中的组件，zIndex 为 0 即可
+        return data.value.blocks;
+      })(); //之后的状态
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: after };
+        },
+        undo() {
+          // 如果当前 blocks 前后一致 则不会更新
+          data.value = { ...data.value, blocks: before };
+        },
+      };
+    },
+  });
+  registry({
+    // 删除操作
+    name: "delete",
+    pushQueue: true,
+    keyboard: "",
+    execute() {
+      const state = {
+        before: deepcopy(data.value.blocks), // 当前的值
+        after: focusData.value.unFocused, // 选中的都删除了，留下的都是没有删除的
+      };
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: state.after };
+        },
+        undo() {
+          // 如果当前 blocks 前后一致 则不会更新
+          data.value = { ...data.value, blocks: state.before };
+        },
+      };
+    },
+  });
   const keyboardEvent = (() => {
-    interface IKeyCodeMap {
-      [key: number]: string;
-    }
-    const keyCodeMap: IKeyCodeMap = {
-      90: "z",
-      89: "y",
-    };
     const init: IInit = () => {
       // 初始化事件
       const onKeyDown = (e: KeyboardEvent) => {

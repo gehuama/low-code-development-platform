@@ -7,6 +7,7 @@ import { WritableComputedRef, computed } from "vue";
  */
 export default function blockFocus(
   data: WritableComputedRef<IEditorData>,
+  previewRef: WritableComputedRef<boolean>,
   callback: (arg0: MouseEvent) => void
 ): IBlockFocus {
   let selectIndex = -1;
@@ -24,11 +25,13 @@ export default function blockFocus(
   };
   /** 点击容器让选中的失去焦点 */
   const containerMouseDown = () => {
+    if (previewRef.value) return;
     clearBlockFocus();
     selectIndex = -1;
   };
   /** 点击组件获取焦点焦点 */
   const blockMouseDown = (e: MouseEvent, block: IBlock, index: number) => {
+    if (previewRef.value) return;
     e.preventDefault();
     e.stopPropagation();
     // block上我们规划一个属性 focus 获取焦点后就将focus变为true
@@ -56,5 +59,6 @@ export default function blockFocus(
     containerMouseDown,
     focusData,
     lastSelectBlock,
+    clearBlockFocus,
   } as unknown as IBlockFocus;
 }
