@@ -36,7 +36,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx"
-, "src/packages/useMenuDragger.ts"  ],
+, "src/packages/useMenuDragger.ts", "src/components/dialog.jsx"  ],
   "exclude": [
     "node_modules"
   ]

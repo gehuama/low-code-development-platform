@@ -47,9 +47,9 @@ export default function command(
   // 注册
   const registry = (command: ICommand) => {
     state.commandArray.push(command);
-    state.commands[command.name] = () => {
+    state.commands[command.name] = (...args) => {
       // 命令名字对应执行函数
-      const { redo, undo } = command.execute();
+      const { redo, undo } = command.execute(...args);
       redo();
       if (!command.pushQueue) {
         // 不需要放到队列中直接跳过即可
@@ -142,6 +142,26 @@ export default function command(
       };
     },
   });
+  // 带有历史记录常用的模式
+  // registry({
+  //   name: "updateContainer", // 更新整个容器
+  //   pushQueue: true,
+  //   keyboard: "",
+  //   execute(newValue: any) {
+  //     const state = {
+  //       before: data.value, // 当前的值
+  //       after: newValue, // 新值
+  //     };
+  //     return {
+  //       redo: () => {
+  //         data.value = state.after;
+  //       },
+  //       undo: () => {
+  //         data.value = state.before;
+  //       },
+  //     };
+  //   },
+  // });
   const keyboardEvent = (() => {
     interface IKeyCodeMap {
       [key: number]: string;

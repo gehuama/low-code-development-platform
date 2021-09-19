@@ -6,6 +6,7 @@ import menuDragger from "./menu-dragger";
 import blockFocus from "./block-focus";
 import blockDragger from "./block-dragger";
 import command from "./command";
+import { importDialog } from "../components/dialog";
 export default defineComponent({
   props: {
     modelValue: { type: Object },
@@ -68,6 +69,34 @@ export default defineComponent({
         icon: "el-icon-refresh-right",
         handler: () => {
           state.commands.redo();
+        },
+      },
+      {
+        label: "导出",
+        icon: "el-icon-download",
+        handler: () => {
+          console.log("导出");
+          importDialog({
+            title: "导出JSON使用",
+            context: JSON.stringify(data.value),
+          });
+        },
+      },
+      {
+        label: "导入",
+        icon: "el-icon-upload2",
+        handler: () => {
+          console.log("导入");
+          importDialog({
+            title: "导入JSON",
+            context: "",
+            footer: true,
+            confirm(text) {
+              console.log(text);
+              // data.value = JSON.parse(text); // 这样去更改无法保留历史记录
+              state.commands.updateContainer(JSON.parse(text));
+            },
+          });
         },
       },
     ];
