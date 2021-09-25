@@ -7,6 +7,8 @@ import blockFocus from "./block-focus";
 import blockDragger from "./block-dragger";
 import command from "./command";
 import { importDialog } from "../components/dialog";
+import { importDropdown, dropdownItem } from "../components/dropdown";
+import { ElButton, ElDropdownItem } from "element-plus";
 export default defineComponent({
   props: {
     modelValue: { type: Object },
@@ -18,6 +20,7 @@ export default defineComponent({
   setup(props, ctx) {
     // 预览的时候 内容不能再操作了，可以点击或者输入内容 方便看效果
     const previewRef = ref(false);
+    const editorRef = ref(true);
 
     const data = computed({
       get() {
@@ -136,70 +139,158 @@ export default defineComponent({
           clearBlockFocus();
         },
       },
+      {
+        label: "关闭",
+        icon: "el-icon-close",
+        handler: () => {
+          editorRef.value = false;
+          clearBlockFocus();
+        },
+      },
     ];
-
-    return () => (
-      <div class="editor">
-        {/* 左侧物料区 */}
-        <div class="editor-left">
-          {/* 根据注册列表渲染内容 可以实现h5拖拽 */}
-          {config.componentList.map((component) => (
-            <div
-              class="editor-left-item"
-              draggable
-              onDragstart={(e) => dragStart(e, component)}
-              onDragend={(e) => dragEnd(e)}
-            >
-              <span>{component.label}</span>
-              <div>{component.preview()}</div>
+    const contextMenu = (e, block) => {
+      e.preventDefault();
+      importDropdown({
+        el: e.target, // 以那个元素为准产生一个 dropdown
+        content: () => {
+          return (
+            <div>
+              <dropdownItem
+                label="删除"
+                icon="el-icon-delete"
+                onClick={() => {
+                  state.commands.delete();
+                }}
+              ></dropdownItem>
+              <dropdownItem
+                label="置顶"
+                icon="el-icon-top"
+                onClick={() => {
+                  state.commands.placeTop();
+                }}
+              ></dropdownItem>
+              <dropdownItem
+                label="置底"
+                icon="el-icon-bottom"
+                onClick={() => {
+                  state.commands.placeBottom();
+                }}
+              ></dropdownItem>
+              <dropdownItem
+                label="查看"
+                icon="el-icon-view"
+                onClick={() => {
+                  importDialog({
+                    title: "查看节点数据",
+                    context: JSON.stringify(block),
+                  });
+                }}
+              ></dropdownItem>
+              <dropdownItem
+                label="导入"
+                icon="el-icon-upload2"
+                onClick={() => {
+                  importDialog({
+                    title: "导入节点数据",
+                    context: "",
+                    footer: true,
+                    confirm(text) {
+                      console.log(text);
+                      // data.value = JSON.parse(text); // 这样去更改无法保留历史记录
+                      state.commands.updateBlock(JSON.parse(text), block);
+                    },
+                  });
+                }}
+              ></dropdownItem>
             </div>
-          ))}
+          );
+        },
+      });
+    };
+
+    return () =>
+      !editorRef.value ? (
+        <div>
+          <ElButton type="primary" onClick={() => (editorRef.value = true)}>
+            继续编辑
+          </ElButton>
+          <div
+            class="editor-container-canvas-content"
+            style={containerStyle.value}
+            style="margin:0"
+          >
+            {data.value.blocks.map((block) => (
+              <EditorBlock
+                class="editor-block-preview"
+                block={block}
+              ></EditorBlock>
+            ))}
+          </div>
         </div>
-        {/* 菜单栏 */}
-        <div class="editor-top">
-          {button.map((btn, index) => {
-            const icon = typeof btn.icon == "function" ? btn.icon() : btn.icon;
-            const label =
-              typeof btn.label == "function" ? btn.label() : btn.label;
-            return (
-              <div class="editor-top-button" onClick={btn.handler}>
-                <i class={icon}></i>
-                <span>{label}</span>
+      ) : (
+        <div class="editor">
+          {/* 左侧物料区 */}
+          <div class="editor-left">
+            {/* 根据注册列表渲染内容 可以实现h5拖拽 */}
+            {config.componentList.map((component) => (
+              <div
+                class="editor-left-item"
+                draggable
+                onDragstart={(e) => dragStart(e, component)}
+                onDragend={(e) => dragEnd(e)}
+              >
+                <span>{component.label}</span>
+                <div>{component.preview()}</div>
               </div>
-            );
-          })}
-        </div>
-        {/* 属性控制栏 */}
-        <div class="editor-right">属性控制栏</div>
-        <div class="editor-container">
-          {/* 负责产生滚动条 */}
-          <div class="editor-container-canvas">
-            {/* 产生内容区域*/}
-            <div
-              class="editor-container-canvas-content"
-              style={containerStyle.value}
-              ref={containerRef}
-              onMousedown={(e) => containerMouseDown(e)}
-            >
-              {data.value.blocks.map((block, index) => (
-                <EditorBlock
-                  class={block.focus ? "editor-block-focus" : ""}
-                  class={previewRef.value ? "editor-block-preview" : ""}
-                  block={block}
-                  onMousedown={(e) => blockMouseDown(e, block, index)}
-                  onBlockUpdate={(newBlock) => blockUpdate(newBlock, block)}
-                ></EditorBlock>
-              ))}
-              {markLine.x !== null && (
-                <div class="line-x" style={{ left: markLine.x + "px" }}></div>
-              )}
-              {markLine.y !== null && (
-                <div class="line-y" style={{ top: markLine.y + "px" }}></div>
-              )}
+            ))}
+          </div>
+          {/* 菜单栏 */}
+          <div class="editor-top">
+            {button.map((btn) => {
+              const icon =
+                typeof btn.icon == "function" ? btn.icon() : btn.icon;
+              const label =
+                typeof btn.label == "function" ? btn.label() : btn.label;
+              return (
+                <div class="editor-top-button" onClick={btn.handler}>
+                  <i class={icon}></i>
+                  <span>{label}</span>
+                </div>
+              );
+            })}
+          </div>
+          {/* 属性控制栏 */}
+          <div class="editor-right">属性控制栏</div>
+          <div class="editor-container">
+            {/* 负责产生滚动条 */}
+            <div class="editor-container-canvas">
+              {/* 产生内容区域*/}
+              <div
+                class="editor-container-canvas-content"
+                style={containerStyle.value}
+                ref={containerRef}
+                onMousedown={(e) => containerMouseDown(e)}
+              >
+                {data.value.blocks.map((block, index) => (
+                  <EditorBlock
+                    class={block.focus ? "editor-block-focus" : ""}
+                    class={previewRef.value ? "editor-block-preview" : ""}
+                    block={block}
+                    onMousedown={(e) => blockMouseDown(e, block, index)}
+                    onBlockUpdate={(newBlock) => blockUpdate(newBlock, block)}
+                    onContextmenu={(e) => contextMenu(e, block)}
+                  ></EditorBlock>
+                ))}
+                {markLine.x !== null && (
+                  <div class="line-x" style={{ left: markLine.x + "px" }}></div>
+                )}
+                {markLine.y !== null && (
+                  <div class="line-y" style={{ top: markLine.y + "px" }}></div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    );
+      );
   },
 });

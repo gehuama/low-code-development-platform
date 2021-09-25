@@ -1,6 +1,7 @@
 import { IBlock, IEditorData, IFocusData } from "@/types/packages";
 import deepcopy from "deepcopy";
 import { onUnmounted, WritableComputedRef } from "vue";
+import blockDragger from "./block-dragger";
 import { events } from "./event";
 
 interface IQueue {
@@ -159,6 +160,33 @@ export default function command(
   //       },
   //       undo: () => {
   //         data.value = state.before;
+  //       },
+  //     };
+  //   },
+  // });
+  // 带有历史记录常用的模式
+  // registry({
+  //   name: "updateBlock", // 更新整个容器
+  //   pushQueue: true,
+  //   keyboard: "",
+  //   execute(newBlock, oldBlock) {
+  //     const state = {
+  //       before: data.value.blocks,
+  //       after: (() => {
+  //         const blocks = [...data.value.blocks]; // 拷贝一份用于新的blocks
+  //         const index = data.value.blocks.indexOf(oldBlock); // 找老的 需要通过老的查找
+  //         if (index > -1) {
+  //           blocks.splice(index, 1, newBlock);
+  //         }
+  //         return blocks;
+  //       })(), // 新值
+  //     };
+  //     return {
+  //       redo: () => {
+  //         data.value = { ...data.value, blocks: state.after };
+  //       },
+  //       undo: () => {
+  //         data.value = { ...data.value, blocks: state.before };
   //       },
   //     };
   //   },
